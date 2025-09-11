@@ -1,10 +1,5 @@
 # DRW Crypto Market Prediction - Competition Solution
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://python.org)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-orange.svg)](https://pytorch.org)
-[![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-orange.svg)](https://jupyter.org)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-
 ## Competition Overview
 
 **DRW Crypto Market Prediction** - Comprehensive solution suite for predicting cryptocurrency price movements using proprietary trading data from DRW's Kaggle competition.
