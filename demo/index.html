@@ -3,202 +3,282 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
 <title>DRW Crypto Signal Lab</title>
 <meta name="description" content="A read-only walkthrough of a Kaggle crypto-return prediction project: validation correlations for Ridge, tree and neural models, where the signal sits in 890 anonymised features, and an honest account of what the saved notebooks do and do not show.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#eef1f5; --panel:#ffffff; --ink:#0f1b2d; --muted:#53627a; --line:#d3dae4;
-  --accent:#b45f00; --accent2:#0b7285; --pos:#0b7285; --neg:#b3261e; --warn:#fff1d6; --warn-line:#e0a83c;
-  --grid:rgba(15,27,45,.06); --focus:#1b5fd6;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#090e18; --panel:#101828; --ink:#e6ebf3; --muted:#93a1b8; --line:#222d42;
-    --accent:#ffb020; --accent2:#4dd8e8; --pos:#4dd8e8; --neg:#ff7a70; --warn:#2a2210; --warn-line:#8a6a1c;
-    --grid:rgba(230,235,243,.05); --focus:#7fb0ff;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#090e18; --panel:#101828; --ink:#e6ebf3; --muted:#93a1b8; --line:#222d42;
-  --accent:#ffb020; --accent2:#4dd8e8; --pos:#4dd8e8; --neg:#ff7a70; --warn:#2a2210; --warn-line:#8a6a1c;
-  --grid:rgba(230,235,243,.05); --focus:#7fb0ff;
+  --bg:#07090C; --nav:#0B0E13; --panel:#0D1117; --track:#141A22; --line:#1C222B; --line2:#2A323D;
+  --ink:#E6EAF0; --body:#B3BCC8; --muted:#9AA4B2; --amber:#FFB020; --cyan:#3DD6F5; --mid:#5B6676; --low:#3A4350; --neg:#FF7A70;
+  --focus:#3DD6F5; color-scheme:dark;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
-a{color:var(--accent2)}
-a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
-.mono,.num{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
-.wrap{max-width:1060px;margin:0 auto;padding:0 16px}
-.skip{position:absolute;left:-999px}.skip:focus{left:8px;top:8px;background:var(--panel);padding:8px 12px;z-index:9}
-.hero{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;border-bottom:1px solid var(--line)}
-.topbar{display:flex;justify-content:space-between;gap:12px;padding:12px 0;font-size:13px;color:var(--muted)}
-.topbar a{font-weight:600;text-decoration:none}
-.hero .inner{padding:34px 0 30px}
-.tag{font:600 12px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
-h1{font-size:clamp(30px,6.2vw,54px);line-height:1.04;margin:12px 0 14px;letter-spacing:-.025em}
-h1 span{color:var(--accent)}
-.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
-.note{margin:20px 0 0;padding:12px 14px;border:1px solid var(--line);border-left:5px solid var(--accent2);background:var(--panel);border-radius:8px;font-size:14.5px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
-.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
-.kpi b{display:block;font-size:27px;letter-spacing:-.01em}
-.kpi span{font-size:13px;color:var(--muted)}
-section{padding:36px 0;border-top:1px solid var(--line)}
-h2{font-size:clamp(22px,4vw,30px);margin:0 0 6px;letter-spacing:-.015em}
-h3{font-size:17px;margin:22px 0 6px}
-.sub{color:var(--muted);margin:0 0 16px;max-width:72ch}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
-.two{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
-.chips button{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:6px 11px;border-radius:999px;font:inherit;font-size:14px;cursor:pointer}
-.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.chiplabel{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
-.lb .row{display:grid;grid-template-columns:minmax(130px,230px) minmax(0,1fr) 62px;gap:8px;align-items:center;margin:6px 0;font-size:14px}
-.lb .row button{all:unset;cursor:pointer;line-height:1.25}
-.lb .row button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
-.lb .track{height:18px;background:color-mix(in srgb,var(--line) 50%,transparent);border-radius:4px;position:relative;overflow:hidden}
-.lb .fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--accent2)}
-.lb .fill.ref{background:repeating-linear-gradient(135deg,var(--muted) 0 5px,transparent 5px 10px);opacity:.6}
-.lb .fill.low{background:var(--muted)}
-.lb .row.pick .name{font-weight:700}
-.lb .row.pick .fill:not(.ref){background:var(--accent)}
-.lb .grp{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 2px}
-.detail h3{margin-top:0}
-.detail dl{margin:8px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
-.detail dt{color:var(--muted)}.detail dd{margin:0}
-.pill{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:999px;border:1px solid var(--warn-line);background:var(--warn);margin:2px 4px 0 0}
-.pill.ok{border-color:var(--line);background:transparent}
-svg text{fill:var(--muted);font:11px ui-sans-serif,system-ui,sans-serif}
-svg .g{stroke:var(--line)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "IBM Plex Sans",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+a{color:var(--cyan)}
+a:hover{color:#8BE8FA}
+a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:3px}
+.mono,.num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:1320px;margin:0 auto;padding:0 24px}
+.skip{position:absolute;left:-999px;padding:12px 14px}.skip:focus{left:8px;top:8px;background:var(--panel);z-index:9}
+
+/* terminal top bar + ticker */
+.topnav{background:var(--nav);border-bottom:1px solid var(--line)}
+.bar1{display:flex;flex-wrap:wrap;gap:0 24px;align-items:center;padding-top:4px;padding-bottom:4px}
+.brand{margin:0;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:15px;letter-spacing:.02em}
+.brand span{color:var(--amber)}
+.navlinks{display:flex;flex-wrap:wrap;gap:0 18px;flex:1 1 auto;font-family:"IBM Plex Mono",monospace;font-size:13px}
+.navlinks a{color:var(--muted);text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
+.navlinks a:hover{color:var(--ink)}
+.src{min-height:44px;display:inline-flex;align-items:center;padding:0 14px;border:1px solid var(--line2);border-radius:4px;font-family:"IBM Plex Mono",monospace;font-size:13px;text-decoration:none}
+.src:hover{border-color:var(--cyan)}
+.ticker{border-top:1px solid var(--line)}
+.ticker .wrap{display:flex;flex-wrap:wrap;gap:6px 32px;padding-top:8px;padding-bottom:8px;font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted)}
+.ticker strong{color:var(--ink);font-weight:600}
+.ticker strong.a{color:var(--amber)}.ticker strong.c{color:var(--cyan)}
+
+/* hero */
+.hero{display:flex;flex-wrap:wrap;gap:40px;align-items:stretch;padding-top:56px;padding-bottom:40px}
+.hero-copy{flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:20px;justify-content:center}
+.eyebrow{margin:0;font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.1em;color:var(--amber)}
+h1{margin:0;font-weight:700;font-size:clamp(38px,4.6vw,58px);line-height:1.02;letter-spacing:-.025em}
+.lede{margin:0;font-size:18px;line-height:1.6;color:var(--body);max-width:520px}
+.prov{margin:0;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:14px;color:var(--muted)}
+.prov a{min-height:44px;display:inline-flex;align-items:center}
+.chip{font-family:"IBM Plex Mono",monospace;font-size:12px;border:1px solid #3A4350;border-radius:3px;padding:3px 8px;color:var(--ink)}
+
+.term{background:var(--panel);border:1px solid var(--line);border-radius:6px;min-width:0}
+.term-head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 8px;padding:14px 18px;border-bottom:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:13px}
+.term-head .t{color:var(--ink);font-weight:600;margin:0;font-size:13px}
+.term-head .n{color:var(--muted)}
+#board{flex:1 1 600px;display:flex;flex-direction:column}
+.lb{padding:8px 10px 6px;display:flex;flex-direction:column;gap:2px}
+.lb button{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:minmax(150px,230px) minmax(0,1fr) 64px;gap:14px;align-items:center;min-height:44px;padding:0 8px;border-radius:4px;color:#C9D1DB;font-size:14px}
+.lb button:hover{background:#111720}
+.lb button[aria-pressed="true"]{background:#131A23;box-shadow:inset 3px 0 0 var(--amber)}
+.lb button:focus-visible{outline:2px solid var(--focus);outline-offset:0}
+.lb .trk{position:relative;height:14px;background:var(--track)}
+.lb .fill{position:absolute;left:0;top:0;bottom:0;background:var(--mid)}
+.lb .fill.low{background:var(--low)}
+.lb .best{color:var(--amber)}.lb .best .fill{background:var(--amber)}
+.lb .refl{position:absolute;top:-5px;bottom:-5px;border-left:1px dashed var(--cyan)}
+.lb .v{font-family:"IBM Plex Mono",monospace;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.refbtn{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px;margin:0 10px;padding:0 8px;border-radius:4px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}
+.refbtn span{color:var(--cyan)}
+.refbtn:hover{background:#111720}
+.refbtn[aria-pressed="true"]{background:#131A23;box-shadow:inset 3px 0 0 var(--cyan);color:var(--ink)}
+.refbtn:focus-visible{outline:2px solid var(--focus)}
+.detail{border-top:1px solid var(--line);padding:16px 18px 18px;margin-top:auto}
+.detail .top{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
+.detail h2{margin:0;font-size:17px;font-weight:600;letter-spacing:0}
+.detail .big{font-family:"IBM Plex Mono",monospace;font-size:24px;font-weight:600;color:var(--amber)}
+.detail .big.c{color:var(--cyan)}
+.detail dl{margin:10px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;color:var(--body)}
+.detail dt{color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:12px;padding-top:2px;text-transform:uppercase}
+.detail dd{margin:0}
+.flag{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:12px;padding:2px 8px;border:1px solid #5C4A1E;color:var(--amber);border-radius:3px;margin:8px 6px 0 0}
+
+/* sections */
+section{padding:64px 0;border-top:1px solid var(--line)}
+section.first{border-top:0;padding-top:24px}
+.sec-head{display:flex;flex-direction:column;gap:10px;max-width:780px;margin-bottom:24px}
+.kicker{margin:0;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.1em;color:var(--amber)}
+h2{margin:0;font-weight:700;font-size:clamp(26px,3vw,32px);letter-spacing:-.01em;line-height:1.15}
+h3{font-size:15px;margin:0 0 6px;font-weight:600}
+.sub{margin:0;color:var(--body);font-size:16px;line-height:1.6;max-width:78ch}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px}
+.weak{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.weak .panel{display:flex;flex-direction:column;gap:10px;padding:20px}
+.weak .k{margin:0;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--amber)}
+.weak .h{margin:0;font-weight:600;font-size:18px}
+.weak .b{margin:0;font-size:15px;line-height:1.55;color:var(--body)}
+.mini{display:flex;gap:8px;align-items:flex-end;height:72px;padding-top:6px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}
+.mini i{display:block;width:40px}
+.mini figure{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%}
+.two{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px}
+.chiplabel{margin:0 0 6px;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.chips button{border:1px solid var(--line2);background:var(--panel);color:var(--ink);padding:6px 12px;border-radius:4px;font:500 13px "IBM Plex Mono",monospace;cursor:pointer;min-height:44px}
+.chips button:hover{border-color:var(--muted)}
+.chips button[aria-pressed="true"]{background:var(--amber);color:#07090C;border-color:var(--amber)}
+svg{display:block;width:100%;height:auto}
+svg text{fill:var(--muted);font:11px "IBM Plex Sans",system-ui,sans-serif}
+svg .g{stroke:var(--line2)}
 svg .lbl{fill:var(--ink)}
-.dumb text.v{font:11px ui-monospace,Menlo,monospace;fill:var(--ink)}
-.legend{font-size:13px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
-.bar .row{display:grid;grid-template-columns:96px minmax(0,1fr) 70px;gap:8px;align-items:center;margin:5px 0;font-size:14px}
-.bar .track{height:15px;background:color-mix(in srgb,var(--line) 50%,transparent);border-radius:4px;position:relative}
-.bar .fill{position:absolute;top:0;bottom:0;border-radius:3px;background:var(--accent2)}
+#dumb{min-width:620px}
+.dumb text.v{font:11px "IBM Plex Mono",monospace;fill:var(--ink)}
+.legend{font-size:14px;color:var(--muted);display:flex;gap:6px 16px;flex-wrap:wrap;margin:10px 0 0}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.bar .row{display:grid;grid-template-columns:96px minmax(0,1fr) 70px;gap:10px;align-items:center;margin:6px 0;font-size:14px}
+.bar .track{height:14px;background:var(--track);position:relative}
+.bar .fill{position:absolute;top:0;bottom:0;background:var(--cyan)}
 .bar .fill.neg{background:var(--neg)}
-.bar .mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--muted)}
-.steps details{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin:8px 0;padding:0}
-.steps summary{cursor:pointer;padding:12px 14px;font-weight:600;list-style:none;display:flex;gap:10px;align-items:baseline}
-.steps summary::-webkit-details-marker{display:none}
-.steps summary::before{content:"+";font-family:ui-monospace,monospace;color:var(--accent);width:1em}
-.steps details[open] summary::before{content:"\2212"}
-.steps .body{padding:0 14px 14px 36px;font-size:14.5px}
-.steps .res{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:color-mix(in srgb,var(--line) 35%,transparent);padding:8px 10px;border-radius:6px;margin-top:6px;overflow-x:auto;white-space:pre-wrap}
-.steps .s{margin-left:auto;font-weight:400;font-size:12.5px;color:var(--muted)}
-.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-figure{margin:0}
-figure img{width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fff}
-figcaption{font-size:13px;color:var(--muted);margin-top:8px}
-.caveat{background:var(--warn);border:1px solid var(--warn-line);border-radius:12px;padding:14px 16px}
-.caveat li{margin:7px 0}
-footer{border-top:1px solid var(--line);padding:26px 0 48px;color:var(--muted);font-size:14px}
+.bar .mid{position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--muted)}
+.bar .num{text-align:right}
+.bar b.t{font-size:14px;font-weight:600}
 .tablewrap{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:13.5px}
-th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
 th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
-th{color:var(--muted);font-weight:600;font-size:12px}
-@media (max-width:820px){
-  .kpis{grid-template-columns:1fr 1fr}
-  .two,.two[style],.gallery{grid-template-columns:minmax(0,1fr)!important}
-}
-@media (max-width:440px){
-  .bar .row{grid-template-columns:minmax(0,1fr) 64px!important}
+th{color:var(--muted);font:500 12px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.04em}
+td.num{font-family:"IBM Plex Mono",monospace}
+.steps details{background:var(--panel);border:1px solid var(--line);border-radius:6px;margin:8px 0}
+.steps summary{cursor:pointer;padding:10px 16px;min-height:44px;font-weight:600;list-style:none;display:flex;gap:12px;align-items:center}
+.steps summary::-webkit-details-marker{display:none}
+.steps summary::before{content:"+";font-family:"IBM Plex Mono",monospace;color:var(--amber);width:1em}
+.steps details[open] summary::before{content:"\2212"}
+.steps .body{padding:0 16px 16px 44px;font-size:15px;color:var(--body)}
+.steps .res{font-family:"IBM Plex Mono",monospace;font-size:13px;background:#090C10;border:1px solid var(--line);color:var(--ink);padding:10px 12px;border-radius:4px;margin-top:8px;overflow-x:auto;white-space:pre-wrap}
+.steps .s{margin-left:auto;font-weight:400;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted)}
+.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+figure.fig{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px}
+figure.fig img{width:100%;height:auto;border-radius:3px;background:#fff;display:block}
+figure.fig figcaption{font-size:14px;color:var(--muted);margin-top:10px}
+.caveat{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:6px;padding:18px 20px}
+.caveat li{margin:8px 0;color:var(--body);font-size:15px}
+.caveat li b{color:var(--ink)}
+footer{border-top:1px solid var(--line)}
+footer .wrap{padding-top:28px;padding-bottom:40px;display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--muted)}
+.foot-row{display:flex;flex-wrap:wrap;gap:4px 28px;justify-content:space-between;align-items:center}
+.foot-row p{margin:0}
+.foot-links{display:flex;flex-wrap:wrap;gap:0 20px}
+.foot-links a{min-height:44px;display:inline-flex;align-items:center}
+.attrib{margin:0;font-size:13.5px;line-height:1.55}
+
+@media (max-width:820px){.two,.gallery{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){
+  .wrap{padding:0 16px}
+  .brand{flex:1 1 auto}
+  .src{order:2}
+  .navlinks{order:3;flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;white-space:nowrap;margin:0 -16px;padding:0 16px;border-top:1px solid var(--line)}
+  .ticker .wrap{flex-wrap:nowrap;overflow-x:auto;white-space:nowrap;gap:0 24px}
+  .hero{padding-top:32px;gap:28px}
+  .lb button{grid-template-columns:minmax(0,1fr) 58px;gap:2px 10px;padding:6px 8px}
+  .lb button .trk{grid-column:1/-1;grid-row:2}
+  .bar .row{grid-template-columns:minmax(0,1fr) 64px}
   .bar .row .track{grid-column:1/-1;order:3}
-  .lb .row{grid-template-columns:minmax(0,1fr) 58px}
-  .lb .row .track{grid-column:1/-1;order:3}
-  .steps .body{padding-left:14px}
+  .steps .body{padding-left:16px}
   .steps .s{display:none}
+  section{padding:48px 0}
 }
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<div class="hero">
-  <div class="wrap">
-    <div class="topbar"><span class="mono">drw-crypto / signal lab</span><a href="https://github.com/coderback/DRW-Crypto-Market-Prediction">View the repo on GitHub</a></div>
-    <div class="inner">
-      <div class="tag">DRW Crypto Market Prediction (Kaggle)</div>
-      <h1>Finding a <span>faint signal</span> in 890 anonymised crypto features</h1>
-      <p class="lede">Predicting short-horizon crypto returns from minute-level data, scored by Pearson correlation. A simple Ridge model on 100 selected features reached 0.1175 on a local time-ordered validation split, while a rebuild of the winning neural pipeline from its public writeup did not get close. This page replays the saved notebook results and says where they are weaker than they look.</p>
-      <p class="note"><strong>Saved results, read-only.</strong> Numbers and figures come from the three notebooks in the repo as they were last run, plus its README. Nothing is trained here. The competition's raw data (<span class="mono">train.parquet</span>, <span class="mono">test.parquet</span>), the submission files and any predictions are not included.</p>
-      <div class="kpis">
-        <div class="kpi"><b class="num">0.1175</b><span>best local validation correlation (Ridge, 100 features)</span></div>
-        <div class="kpi"><b class="num">525,887</b><span>training minutes, Mar 2023 to Feb 2024, 895 raw features</span></div>
-        <div class="kpi"><b class="num">0.0677</b><span>strongest single X-feature correlation in the EDA sample</span></div>
-        <div class="kpi"><b class="num">0.0807</b><span>best epoch of the winner-recreation MLP; 0.0234 when evaluated at its final epoch</span></div>
-      </div>
+
+<nav class="topnav" aria-label="Primary">
+  <div class="wrap bar1">
+    <p class="brand"><span aria-hidden="true">■</span> DRW/SIGNAL-LAB</p>
+    <div class="navlinks">
+      <a href="#board">LEADERBOARD</a>
+      <a href="#explorer">FEATURE SETS</a>
+      <a href="#signal">SIGNAL</a>
+      <a href="#rebuild">REBUILD</a>
+      <a href="#caveats">CAVEATS</a>
     </div>
+    <a class="src" href="https://github.com/coderback/drw-crypto-market-prediction">SOURCE ↗</a>
   </div>
-</div>
+  <div class="ticker" data-scroll><div class="wrap" aria-label="Key figures">
+    <span>TRAIN MIN <strong>525,887</strong></span>
+    <span>RAW FEATURES <strong>895</strong></span>
+    <span>PERIOD <strong>MAR 2023 – FEB 2024</strong></span>
+    <span>METRIC <strong>PEARSON R</strong></span>
+    <span>BEST LOCAL <strong class="a">0.1175</strong></span>
+    <span>WINNER (REF) <strong class="c">0.1310</strong></span>
+  </div></div>
+</nav>
 
 <main id="main">
-<section><div class="wrap">
-  <h2>Approach leaderboard</h2>
-  <p class="sub">Every validation correlation printed by the notebooks, on one axis. Each notebook uses its own split, so bars are only loosely comparable. Select a bar to see how that number was produced and what weakens it.</p>
-  <div class="two">
-    <div class="panel lb" id="lb"></div>
-    <div class="panel detail" id="detail" aria-live="polite"></div>
+<header class="wrap hero">
+  <div class="hero-copy">
+    <p class="eyebrow">DRW CRYPTO MARKET PREDICTION · KAGGLE</p>
+    <h1>A faint signal in 890 anonymised features.</h1>
+    <p class="lede">Predicting short-horizon crypto returns from minute-level data, scored by Pearson correlation. A plain Ridge model on 100 selected features reached 0.1175 on a time-ordered validation split. A rebuild of the winning neural pipeline did not get close. This page shows both, and where each number is weaker than it looks.</p>
+    <p class="prov"><span class="chip">SAVED RESULTS</span> From the repo's three notebooks as last run. Nothing is trained here and the competition data is not included. Not investment advice. <a href="#caveats">How this page was built</a></p>
+  </div>
+
+  <div id="board" class="term">
+    <div class="term-head"><p class="t">APPROACH LEADERBOARD · VALIDATION r</p><span class="n">splits differ, compare loosely</span></div>
+    <div class="lb" id="lb" role="group" aria-label="Approaches, select one for detail"></div>
+    <button type="button" class="refbtn" id="refBtn" aria-pressed="false"><span aria-hidden="true">┆</span> winner's private leaderboard score, 0.1310 (reference, not from this repo)</button>
+    <div class="detail" id="detail" aria-live="polite"></div>
+  </div>
+</header>
+
+<section id="weaker" class="first"><div class="wrap">
+  <div class="sec-head"><h2>Where the numbers are weaker than they look</h2></div>
+  <div class="weak">
+    <div class="panel"><p class="k">SPLIT</p><p class="h">One time-ordered 80/20 split</p>
+      <p class="b">420,709 training and 105,178 validation minutes. Feature selection saw the validation rows, so 0.1175 is probably optimistic.</p></div>
+    <div class="panel"><p class="k">OVERFIT</p><p class="h">Random forests memorise the window</p>
+      <p class="b">Training correlation of 0.66 to 0.70, then almost nothing out of sample. Top-20 X features: 0.6974 train, 0.0035 validation.</p>
+      <div class="mini" role="img" aria-label="Random forest on top-20 X features: training correlation 0.6974, validation 0.0035">
+        <i style="height:100%;background:var(--low)"></i><i style="height:3px;background:var(--amber)"></i><span style="padding-left:6px">train · validation</span></div></div>
+    <div class="panel"><p class="k">RECREATION</p><p class="h">The MLP's best epoch flatters it</p>
+      <p class="b">0.0807 at its best epoch, picked on the same validation window; 0.0234 when evaluated at its final epoch.</p></div>
   </div>
 </div></section>
 
-<section><div class="wrap">
-  <h2>Feature set and model explorer</h2>
-  <p class="sub">The EDA notebook's baseline experiment: four feature sets and four models on the most recent 30% of the training minutes, split 70/30 in time. Filter to compare, and watch the gap between training and validation correlation. Random forests fit the training window almost perfectly (0.66 to 0.70) and then predict about nothing out of sample.</p>
+<section id="explorer"><div class="wrap">
+  <div class="sec-head"><p class="kicker">FEATURE SETS</p><h2>Feature set and model explorer</h2>
+  <p class="sub">The EDA notebook's baseline experiment: four feature sets and four models on the most recent 30% of the training minutes, split 70/30 in time. Filter to compare, and watch the gap between training and validation correlation. Random forests fit the training window almost perfectly (0.66 to 0.70) and then predict about nothing out of sample.</p></div>
   <p class="chiplabel" id="fsl">Feature set</p>
   <div class="chips" role="group" aria-labelledby="fsl" id="fsChips"></div>
   <p class="chiplabel" id="mdl">Model</p>
   <div class="chips" role="group" aria-labelledby="mdl" id="mdChips"></div>
-  <div class="panel"><svg id="dumb" class="dumb" viewBox="0 0 700 100" role="img" aria-label="Dumbbell chart of training versus validation correlation for the selected experiments"></svg>
-    <div class="legend"><span><i style="background:var(--muted)"></i>Training correlation</span><span><i style="background:var(--accent)"></i>Validation correlation</span><span id="dsum"></span></div></div>
+  <div class="panel"><div class="tablewrap"><svg id="dumb" class="dumb" viewBox="0 0 700 100" role="img" aria-label="Dumbbell chart of training versus validation correlation for the selected experiments"></svg></div>
+    <div class="legend"><span><i style="background:var(--muted)"></i>Training correlation</span><span><i style="background:var(--amber)"></i>Validation correlation</span><span id="dsum"></span></div></div>
   <div class="panel tablewrap" style="margin-top:12px"><table id="tbl"></table></div>
 </div></section>
 
-<section><div class="wrap">
-  <h2>Where the signal is</h2>
-  <p class="sub">Absolute-correlation rankings printed by the notebooks. Even the best single feature explains well under 1% of target variance (0.0694 squared is about 0.005), which is why the final models land near 0.1 and why overfitting dominates the story. Choose a list.</p>
+<section id="signal"><div class="wrap">
+  <div class="sec-head"><p class="kicker">SIGNAL</p><h2>Where the signal is</h2>
+  <p class="sub">Absolute-correlation rankings printed by the notebooks. Even the best single feature explains well under 1% of target variance (0.0694 squared is about 0.005), which is why the final models land near 0.1 and why overfitting dominates the story. The EDA notebook's strongest single X feature scored 0.0677. Choose a list.</p></div>
   <div class="chips" role="group" aria-label="Which ranking" id="sigChips"></div>
-  <div class="two" style="grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)">
+  <div class="two">
     <div class="panel bar" id="sig"></div>
-    <div class="panel bar"><b style="font-size:14px">Market features vs target</b>
+    <div class="panel bar"><b class="t">Market features vs target</b>
       <p class="legend" style="margin:2px 0 8px">Correlation with the label across all 525,887 minutes (from the main and EDA notebooks).</p><div id="mkt"></div>
-      <p style="font-size:14px;margin:12px 0 0">The five market columns top out at |0.0158|. The EDA notebook reports the best X feature at 0.0677 against that, about 4.3 times stronger.</p></div>
+      <p style="font-size:14px;margin:12px 0 0;color:var(--body)">The five market columns top out at |0.0158|. The EDA notebook reports the best X feature at 0.0677 against that, about 4.3 times stronger.</p></div>
   </div>
 </div></section>
 
-<section><div class="wrap">
-  <h2>Train and test do not look alike</h2>
-  <p class="sub">Kolmogorov-Smirnov distance between the training and test distributions, from the EDA notebook. Larger means a bigger shift. All five market columns differ, and the column means differ by roughly a third, so a model tuned on the whole history is being asked to extrapolate.</p>
+<section id="shift"><div class="wrap">
+  <div class="sec-head"><p class="kicker">SHIFT</p><h2>Train and test do not look alike</h2>
+  <p class="sub">Kolmogorov-Smirnov distance between the training and test distributions, from the EDA notebook. Larger means a bigger shift. All five market columns differ, and the column means differ by roughly a third, so a model tuned on the whole history is being asked to extrapolate.</p></div>
   <div class="two">
     <div class="panel bar" id="ks"></div>
     <div class="panel"><b style="font-size:14px">X features (sample of 50)</b>
-      <p style="font-size:14px;margin:6px 0">Distributions matching between train and test: <b class="num">13 of 50</b> (26%). Mean KS statistic: <b class="num">0.1275</b>.</p>
-      <p style="font-size:14px;margin:6px 0">The notebook's recommendation was to train on recent data only and regularise hard. Its own recent-30% experiment is the one above.</p></div>
+      <p style="font-size:15px;margin:8px 0;color:var(--body)">Distributions matching between train and test: <b class="num" style="color:var(--ink)">13 of 50</b> (26%). Mean KS statistic: <b class="num" style="color:var(--ink)">0.1275</b>.</p>
+      <p style="font-size:15px;margin:8px 0;color:var(--body)">The notebook's recommendation was to train on recent data only and regularise hard. Its own recent-30% experiment is the feature-set explorer above.</p></div>
   </div>
 </div></section>
 
-<section><div class="wrap">
-  <h2>Rebuilding the winning pipeline, step by step</h2>
-  <p class="sub">The third notebook re-implements the first-place writeup (cluster the features, filter, purged time-series CV, SHAP selection, engineered combinations, an autoencoder, an MLP and an XGBoost blend). Output as printed at each step; it is a partial recreation that underperformed, as the README itself says. Expand a step.</p>
+<section id="rebuild"><div class="wrap">
+  <div class="sec-head"><p class="kicker">REBUILD</p><h2>Rebuilding the winning pipeline, step by step</h2>
+  <p class="sub">The third notebook re-implements the first-place writeup (cluster the features, filter, purged time-series CV, SHAP selection, engineered combinations, an autoencoder, an MLP and an XGBoost blend). Output as printed at each step; it is a partial recreation that underperformed, as the README itself says. Expand a step.</p></div>
   <div class="steps" id="steps"></div>
 </div></section>
 
-<section><div class="wrap">
-  <h2>Saved figures</h2>
-  <p class="sub">Four of the figures the notebooks saved, unedited. They show aggregates only, not raw rows.</p>
+<section id="figures"><div class="wrap">
+  <div class="sec-head"><p class="kicker">FIGURES</p><h2>Saved figures</h2>
+  <p class="sub">Four of the figures the notebooks saved, unedited. They show aggregates only, not raw rows.</p></div>
   <div class="gallery">
-    <figure><img src="img/baseline-analysis.png" width="1590" height="1180" loading="lazy" alt="Four panels: best validation correlation by feature set (top X features highest near 0.11, market only about 0.015), train versus validation correlation (random forests at 0.66 to 0.70 train but near zero validation), validation correlation versus feature count, and model comparison with Ridge ahead of random forest."><figcaption>EDA baseline experiment, the source of the explorer above.</figcaption></figure>
-    <figure><img src="img/train-test-shift.png" width="1590" height="1800" loading="lazy" alt="Six panels comparing training and test distributions: bid and ask quantity histograms, KS statistics for the five market features all near 0.12 to 0.16, a histogram of X-feature KS statistics with mean 0.127, similarity scores for the top 20 X features, and a p-value histogram mostly below 0.05."><figcaption>Train versus test distribution analysis.</figcaption></figure>
-    <figure><img src="img/mlp-training.png" width="1500" height="1000" loading="lazy" alt="Six panels from the MLP training run: training loss falling while validation loss stays high and noisy, validation correlation peaking near 0.08 in the first few epochs and then decaying to about 0.02, layer-one feature weights, predictions against actual, a comparison bar chart that includes hard-coded reference values, and the loss components."><figcaption>Recreated MLP training. The validation correlation peaks early, then decays while training loss keeps falling.</figcaption></figure>
-    <figure><img src="img/ensemble.png" width="1500" height="1000" loading="lazy" alt="Six panels from the ensemble step: XGBoost fold correlations with one fold at minus 1.0, model comparison, MLP versus XGBoost predictions, ensemble predictions against actual with correlation 0.0423, XGBoost feature importance, and an ensemble weight sweep where lower MLP weight is better."><figcaption>XGBoost folds and the MLP/XGBoost blend. Weight sweep: more XGBoost is better, ending at about 0.069 for a 50/50 blend of about 0.069 (the edge of the swept range).</figcaption></figure>
+    <figure class="fig"><img src="img/baseline-analysis.png" width="1590" height="1180" loading="lazy" alt="Four panels: best validation correlation by feature set (top X features highest near 0.11, market only about 0.015), train versus validation correlation (random forests at 0.66 to 0.70 train but near zero validation), validation correlation versus feature count, and model comparison with Ridge ahead of random forest."><figcaption>EDA baseline experiment, the source of the explorer above.</figcaption></figure>
+    <figure class="fig"><img src="img/train-test-shift.png" width="1590" height="1800" loading="lazy" alt="Six panels comparing training and test distributions: bid and ask quantity histograms, KS statistics for the five market features all near 0.12 to 0.16, a histogram of X-feature KS statistics with mean 0.127, similarity scores for the top 20 X features, and a p-value histogram mostly below 0.05."><figcaption>Train versus test distribution analysis.</figcaption></figure>
+    <figure class="fig"><img src="img/mlp-training.png" width="1500" height="1000" loading="lazy" alt="Six panels from the MLP training run: training loss falling while validation loss stays high and noisy, validation correlation peaking near 0.08 in the first few epochs and then decaying to about 0.02, layer-one feature weights, predictions against actual, a comparison bar chart that includes hard-coded reference values, and the loss components."><figcaption>Recreated MLP training. The validation correlation peaks early, then decays while training loss keeps falling.</figcaption></figure>
+    <figure class="fig"><img src="img/ensemble.png" width="1500" height="1000" loading="lazy" alt="Six panels from the ensemble step: XGBoost fold correlations with one fold at minus 1.0, model comparison, MLP versus XGBoost predictions, ensemble predictions against actual with correlation 0.0423, XGBoost feature importance, and an ensemble weight sweep where lower MLP weight is better."><figcaption>XGBoost folds and the MLP/XGBoost blend. Weight sweep: more XGBoost is better, ending at about 0.069 for a 50/50 blend of about 0.069 (the edge of the swept range).</figcaption></figure>
   </div>
 </div></section>
 
-<section><div class="wrap">
-  <h2>Read this before quoting the numbers</h2>
+<section id="caveats"><div class="wrap">
+  <div class="sec-head"><p class="kicker">CAVEATS</p><h2>Read this before quoting the numbers</h2>
+  <p class="sub">Numbers and figures come from the three notebooks in the repo as they were last run, plus its README. Nothing is trained here. The competition's raw data (<span class="mono">train.parquet</span>, <span class="mono">test.parquet</span>), the submission files and any predictions are not included.</p></div>
   <div class="caveat"><ul style="margin:0;padding-left:20px">
     <li><b>These are local validation scores, not leaderboard scores.</b> The README sets the 0.1175 beside the winner's 0.131 private leaderboard score and calls it "89.7% of winner performance". Those come from different data and protocols, so that ratio is not meaningful and this page does not use it. The 0.131 appears here only as the figure the third notebook cites for the winner's solution.</li>
     <li><b>The main notebook's feature selection saw the validation rows.</b> It ranks features by correlation with the target over the whole training set, then splits 80/20. That leaks a little information into the 0.1175, so it is probably optimistic. The README calls the same number "Training Correlation"; it is the validation correlation.</li>
@@ -212,7 +292,11 @@ th{color:var(--muted);font-weight:600;font-size:12px}
 </main>
 
 <footer><div class="wrap">
-  Source and notebooks: <a href="https://github.com/coderback/DRW-Crypto-Market-Prediction">github.com/coderback/DRW-Crypto-Market-Prediction</a>. Competition: <a href="https://www.kaggle.com/competitions/drw-crypto-market-prediction">DRW Crypto Market Prediction on Kaggle</a>; its data is not redistributed here. Research and portfolio use only, not trading advice.
+  <div class="foot-row">
+    <p>Built by Timothy Ojebiyi as a portfolio demo.</p>
+    <p class="foot-links"><a href="https://timothyojebiyi.com">Portfolio</a><a href="https://github.com/coderback/drw-crypto-market-prediction">Source on GitHub</a><a href="#caveats">How this page was built</a></p>
+  </div>
+  <p class="attrib">Competition: <a href="https://www.kaggle.com/competitions/drw-crypto-market-prediction">DRW Crypto Market Prediction on Kaggle</a>; its data is not redistributed here. Research and portfolio use only, not trading or investment advice.</p>
 </div></footer>
 
 <script>
@@ -231,22 +315,21 @@ const APPROACHES=[
  {g:"Reference (not a result from this repo)",n:"Winner's private leaderboard",v:.131,ref:true,nb:"Cited in the third notebook's text",split:"Kaggle private leaderboard, a different protocol and different data window.",how:"Quoted from the winner's public writeup as cited by the notebook; not reproduced here.",cv:["Not comparable"],mse:""},
  {g:"Baselines",n:"Market columns only, Ridge",v:.0145,nb:"DRW_EDA_Critical_Analysis.ipynb",split:"Recent-30% window, 70/30 time split.",how:"The 5 market columns (bid, ask, buy, sell quantity and volume).",cv:["Weak signal, as expected"],mse:""}
 ];
-let sel=0;
+const REF=APPROACHES.findIndex(a=>a.ref), BEST=APPROACHES.reduce((b,a,i)=>!a.ref&&a.v>APPROACHES[b].v?i:b,0);
+let sel=BEST;
 function renderLB(){
-  const box=$("#lb"); box.innerHTML=""; const MAX=.14; let last="";
-  APPROACHES.forEach((a,i)=>{
-    if(a.g!==last){box.insertAdjacentHTML("beforeend",`<div class="grp">${a.g}</div>`);last=a.g;}
-    const d=document.createElement("div"); d.className="row"+(i===sel?" pick":"");
-    d.innerHTML=`<button type="button" class="name" aria-pressed="${i===sel}">${a.n}</button><div class="track"><div class="fill ${a.ref?"ref":(a.v<.05?"low":"")}" style="width:${a.v/MAX*100}%"></div></div><span class="num">${a.v.toFixed(4)}</span>`;
-    d.querySelector("button").onclick=()=>{sel=i;renderLB();renderDetail();}; box.appendChild(d);
-  });
+  const box=$("#lb"), MAX=.15, refX=APPROACHES[REF].v/MAX*100;
+  const order=APPROACHES.map((a,i)=>i).filter(i=>i!==REF).sort((a,b)=>APPROACHES[b].v-APPROACHES[a].v);
+  box.innerHTML=order.map(i=>{const a=APPROACHES[i];return `<button type="button" data-i="${i}" class="${i===BEST?"best":""}" aria-pressed="${i===sel}" aria-label="${a.n}: ${a.v.toFixed(4)}"><span>${a.n}</span><span class="trk" aria-hidden="true"><span class="fill ${a.v<.05?"low":""}" style="width:${a.v/MAX*100}%"></span><span class="refl" style="left:${refX}%"></span></span><span class="v">${a.v.toFixed(4)}</span></button>`}).join("");
+  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{sel=+b.dataset.i;renderLB();renderDetail();box.querySelector(`[data-i="${sel}"]`).focus();});
+  $("#refBtn").setAttribute("aria-pressed",sel===REF);
 }
+$("#refBtn").onclick=()=>{sel=REF;renderLB();renderDetail();};
 function renderDetail(){
   const a=APPROACHES[sel];
-  $("#detail").innerHTML=`<h3>${a.n}</h3><div class="num" style="font-size:30px;font-weight:700;color:var(--accent)">${a.v.toFixed(4)}</div>
-  <p class="legend" style="margin:0 0 6px">Pearson correlation, validation</p>
-  <dl><dt>Source</dt><dd class="mono" style="font-size:12.5px">${a.nb}</dd><dt>Split</dt><dd>${a.split}</dd><dt>Setup</dt><dd>${a.how}</dd>${a.mse?`<dt>Error</dt><dd>${a.mse}</dd>`:""}</dl>
-  <div style="margin-top:10px">${a.cv.map(c=>`<span class="pill">${c}</span>`).join("")}</div>`;
+  $("#detail").innerHTML=`<div class="top"><h2>${a.n}</h2><span class="big ${a.ref?"c":""}">${a.v.toFixed(4)}</span><span class="mono" style="font-size:12px;color:var(--muted)">${a.ref?"PRIVATE LEADERBOARD (REFERENCE)":"PEARSON r, VALIDATION"}</span></div>
+  <dl><dt>Group</dt><dd>${a.g}</dd><dt>Source</dt><dd class="mono" style="font-size:13px">${a.nb}</dd><dt>Split</dt><dd>${a.split}</dd><dt>Setup</dt><dd>${a.how}</dd>${a.mse?`<dt>Error</dt><dd>${a.mse}</dd>`:""}</dl>
+  <div>${a.cv.map(c=>`<span class="flag">${c}</span>`).join("")}</div>`;
 }
 // ---------- Feature set x model explorer (EDA notebook, cell 5.1)
 const FS={market_only:"Market only (5)",top_x_features_small:"Top-20 X",market_plus_top_x:"Market + top-30 X (35)",top_x_features:"Top-50 X"};
@@ -261,7 +344,7 @@ let fsSel=new Set(Object.keys(FS)), mdSel=new Set(MODELS);
 function chipRow(id,items,set,render){
   const box=$(id); box.innerHTML="";
   items.forEach(([k,l])=>{const b=document.createElement("button");b.type="button";b.textContent=l;b.setAttribute("aria-pressed",set.has(k));
-    b.onclick=()=>{set.has(k)?set.delete(k):set.add(k);chipRow(id,items,set,render);render();};box.appendChild(b);});
+    b.onclick=()=>{set.has(k)?set.delete(k):set.add(k);chipRow(id,items,set,render);render();box.querySelectorAll("button")[items.findIndex(x=>x[0]===k)].focus();};box.appendChild(b);});
 }
 function renderDumb(){
   const rows=R.filter(r=>fsSel.has(r[0])&&mdSel.has(r[1]));
@@ -273,7 +356,7 @@ function renderDumb(){
   rows.forEach((r,i)=>{const y=T+i*rh+8;
     s+=`<text class="lbl" x="${L-10}" y="${y+4}" text-anchor="end">${FS[r[0]]} · ${r[1].replace("Ridge alpha ","Ridge α")}</text>
     <line x1="${x(r[3])}" x2="${x(r[2])}" y1="${y}" y2="${y}" stroke="var(--muted)" stroke-width="2" opacity=".5"/>
-    <circle cx="${x(r[2])}" cy="${y}" r="5" fill="var(--muted)"/><circle cx="${x(r[3])}" cy="${y}" r="5.5" fill="var(--accent)"/>
+    <circle cx="${x(r[2])}" cy="${y}" r="5" fill="var(--muted)"/><circle cx="${x(r[3])}" cy="${y}" r="5.5" fill="var(--amber)"/>
     <text class="v" x="${W-Rm+10}" y="${y+4}">${f4(r[3])}</text>`;});
   sv.innerHTML=s;
   const best=rows.length?rows.reduce((a,b)=>b[3]>a[3]?b:a):null;
@@ -290,20 +373,20 @@ const SIG={
 };
 let sigK="main";
 function barRows(box,data,scaleMax,signed,nameW){
-  box.innerHTML=(box.dataset.title?`<b style="font-size:14px">${box.dataset.title}</b>`:"");
+  box.innerHTML=(box.dataset.title?`<b class="t">${box.dataset.title}</b>`:"");
   data.forEach(([n,v])=>{
     const w=Math.abs(v)/scaleMax*(signed?50:100);const left=signed?(v>=0?50:50-w):0;
     box.insertAdjacentHTML("beforeend",`<div class="row" ${nameW?`style="grid-template-columns:${nameW} minmax(0,1fr) 70px"`:""}><span class="mono" style="font-size:12.5px;overflow-wrap:anywhere">${n}</span><div class="track" role="img" aria-label="${n}: ${f4(v)}"><div class="fill ${v<0?"neg":""}" style="left:${left}%;width:${w}%"></div>${signed?'<div class="mid"></div>':""}</div><span class="num">${f4(v)}</span></div>`);
   });
 }
-function renderSig(){
-  const b=$("#sig"); b.dataset.title=SIG[sigK].l; barRows(b,SIG[sigK].d,.08,true,sigK==="eng"?"170px":"96px");
-  $("#sigChips").innerHTML=""; Object.entries(SIG).forEach(([k,o])=>{const c=document.createElement("button");c.type="button";c.textContent=o.l.split(":")[0]+(o.l.includes(":")?": "+o.l.split(":")[1].trim().replace(/^top 10 /,"top 10 ").slice(0,26):"");c.textContent=({main:"Main notebook",eda:"EDA sample",filt:"Recreation: clustered",eng:"Recreation: engineered"})[k];c.setAttribute("aria-pressed",k===sigK);c.onclick=()=>{sigK=k;renderSig();};$("#sigChips").appendChild(c);});
+function renderSig(focus){
+  const b=$("#sig"); b.dataset.title=SIG[sigK].l; barRows(b,SIG[sigK].d,.08,true,sigK==="eng"&&innerWidth>560?"170px":null);
+  $("#sigChips").innerHTML=""; Object.entries(SIG).forEach(([k,o])=>{const c=document.createElement("button");c.type="button";c.textContent=({main:"Main notebook",eda:"EDA sample",filt:"Recreation: clustered",eng:"Recreation: engineered"})[k];c.setAttribute("aria-pressed",k===sigK);c.onclick=()=>{sigK=k;renderSig(k);};$("#sigChips").appendChild(c);if(focus===k)c.focus();});
 }
 // ---------- Shift
 const KS=[["bid_qty",.1624,35.81],["ask_qty",.1625,35.68],["buy_qty",.1157,32.98],["sell_qty",.1210,32.35],["volume",.1216,32.66]];
 function renderKS(){
-  const b=$("#ks"); b.innerHTML=`<b style="font-size:14px">KS distance, train vs test (market columns)</b>`;
+  const b=$("#ks"); b.innerHTML=`<b class="t">KS distance, train vs test (market columns)</b>`;
   KS.forEach(([n,v,p])=>b.insertAdjacentHTML("beforeend",`<div class="row"><span class="mono" style="font-size:12.5px">${n}</span><div class="track" role="img" aria-label="${n} KS ${v}"><div class="fill" style="left:0;width:${v/.2*100}%"></div></div><span class="num">${v.toFixed(4)}</span></div>`));
   b.insertAdjacentHTML("beforeend",`<p class="legend" style="margin:10px 0 0">Mean difference between train and test, same order: ${KS.map(k=>k[0]+" "+k[2].toFixed(1)+"%").join(", ")}. All five differ at p below 1e-58.</p>`);
 }
